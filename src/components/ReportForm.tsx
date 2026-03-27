@@ -200,93 +200,114 @@ const ReportForm: React.FC<ReportFormProps> = ({ onSave, initialData, currentUse
 
   const isTargetMissed = totalLetters > 0 && currentPercentage < targetPercentage;
 
-  const handleSubmit = (e: React.FormEvent, newStatus: ReportStatus, remarks: string = formData.saoRemarks) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    const overallPercentage = currentPercentage;
-
-    let part2Data: ReportPart2 | undefined = undefined;
-    if (formData.quarter === Quarter.Q4) {
-      part2Data = {
-        staff: { total: formData.p2_staff_total, workingKnowledge: formData.p2_staff_working, proficient: formData.p2_staff_proficient },
-        typing: { total: formData.p2_type_total, trained: formData.p2_type_trained },
-        stenography: { total: formData.p2_steno_total, trained: formData.p2_steno_trained },
-        computers: { total: formData.p2_comp_total, unicodeEnabled: formData.p2_comp_unicode },
-        website: { isBilingual: formData.p2_website_bilingual },
-        library: { totalExpenditure: formData.p2_lib_total_exp, hindiExpenditure: formData.p2_lib_hindi_exp },
-        publications: { total: formData.p2_pub_total, hindi: formData.p2_pub_hindi, bilingual: formData.p2_pub_bilingual },
-        inspections: { target: formData.p2_insp_target, completed: formData.p2_insp_completed }
-      };
+    const encode = (data: any) => {
+      return Object.keys(data)
+        .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
+        .join("&");
     }
 
-    const report: Report = {
-      id: initialData?.id || crypto.randomUUID(),
-      year: formData.year,
-      quarter: formData.quarter,
-      region: formData.region,
-      status: newStatus,
-      saoRemarks: remarks,
-      sectionId: initialData?.sectionId || currentUser.id,
-      sectionName: initialData?.sectionName || currentUser.sectionName || 'Admin',
-      authorUid: initialData?.authorUid || currentUser.id,
-      officeInfo: { name: 'कार्यालय/अनुभाग', address: '', officerName: '', phone: '', email: '' },
-      ministerFiles: { total: 0, hindi: 0 },
-      meetings: { 
-        secretaryLevel: { meetingsCount: 0, minutesHindiCount: 0, docsIssuedTotal: 0, docsIssuedHindi: 0 }, 
-        olicHeld: !!formData.olic_date, 
-        olicDate: formData.olic_date, 
-        subordinateOlicCount: formData.sub_olic_count,
-        subordinateOlicHeldCount: formData.sub_olic_held,
-        subordinateOlicHindiMinutes: formData.sub_olic_hindi,
-        advisoryHeld: false 
-      },
-      section33: { 
-        total: formData.s33_total, 
-        bilingual: formData.s33_bilingual, 
-        englishOnly: formData.s33_english, 
-        hindiOnly: formData.s33_hindi 
-      },
-      rule5: { 
-        totalHindiReceived: formData.r5_received, 
-        repliedHindi: formData.r5_replied_hindi, 
-        repliedEnglish: formData.r5_replied_english, 
-        noReplyNeeded: formData.r5_noreply 
-      },
-      rule5EnglishLetters: { 
-        regionA: { received: formData.r5engA_received, repliedHindi: formData.r5engA_hindi, repliedEnglish: formData.r5engA_eng, noReplyNeeded: formData.r5engA_noreply }, 
-        regionB: { received: formData.r5engB_received, repliedHindi: formData.r5engB_hindi, repliedEnglish: formData.r5engB_eng, noReplyNeeded: formData.r5engB_noreply } 
-      },
-      correspondence: {
-        toRegionA: { hindi: formData.corrA_hindi, english: formData.corrA_eng, total: corrATotal, percentage: corrATotal > 0 ? (formData.corrA_hindi/corrATotal)*100 : 0 },
-        toRegionB: { hindi: formData.corrB_hindi, english: formData.corrB_eng, total: corrBTotal, percentage: corrBTotal > 0 ? (formData.corrB_hindi/corrBTotal)*100 : 0 },
-        toRegionC: { hindi: formData.corrC_hindi, english: formData.corrC_eng, total: corrCTotal, percentage: corrCTotal > 0 ? (formData.corrC_hindi/corrCTotal)*100 : 0 },
-        overallPercentage
-      },
-      noting: { 
-        hindiPages: formData.noting_hindi, 
-        englishPages: formData.noting_eng, 
-        totalNotes: formData.noting_total, 
-        eOfficeHindi: formData.noting_eoffice 
-      },
-      workshops: { 
-        count: formData.ws_count, 
-        officersTrained: formData.ws_officers, 
-        staffTrained: formData.ws_staff 
-      },
-      achievements: formData.achievements,
-      part2: part2Data,
-      timestamp: initialData?.timestamp || new Date().toISOString(),
-      acknowledgementId: initialData?.acknowledgementId || `RAJ-${Date.now().toString().slice(-6)}`,
-      submittedBy: initialData?.submittedBy || currentUser.name,
-      declarationSigned: true
-    };
+    const handleSubmit = async (e: React.FormEvent, newStatus: ReportStatus, remarks: string = formData.saoRemarks) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      
+      const overallPercentage = currentPercentage;
 
-    setTimeout(() => {
-      onSave(report);
-      setIsSubmitting(false);
-    }, 800);
-  };
+      let part2Data: ReportPart2 | undefined = undefined;
+      if (formData.quarter === Quarter.Q4) {
+        part2Data = {
+          staff: { total: formData.p2_staff_total, workingKnowledge: formData.p2_staff_working, proficient: formData.p2_staff_proficient },
+          typing: { total: formData.p2_type_total, trained: formData.p2_type_trained },
+          stenography: { total: formData.p2_steno_total, trained: formData.p2_steno_trained },
+          computers: { total: formData.p2_comp_total, unicodeEnabled: formData.p2_comp_unicode },
+          website: { isBilingual: formData.p2_website_bilingual },
+          library: { totalExpenditure: formData.p2_lib_total_exp, hindiExpenditure: formData.p2_lib_hindi_exp },
+          publications: { total: formData.p2_pub_total, hindi: formData.p2_pub_hindi, bilingual: formData.p2_pub_bilingual },
+          inspections: { target: formData.p2_insp_target, completed: formData.p2_insp_completed }
+        };
+      }
+
+      const report: Report = {
+        id: initialData?.id || crypto.randomUUID(),
+        year: formData.year,
+        quarter: formData.quarter,
+        region: formData.region,
+        status: newStatus,
+        saoRemarks: remarks,
+        sectionId: initialData?.sectionId || currentUser.id,
+        sectionName: initialData?.sectionName || currentUser.sectionName || 'Admin',
+        authorUid: initialData?.authorUid || currentUser.id,
+        officeInfo: { name: 'कार्यालय/अनुभाग', address: '', officerName: '', phone: '', email: '' },
+        ministerFiles: { total: 0, hindi: 0 },
+        meetings: { 
+          secretaryLevel: { meetingsCount: 0, minutesHindiCount: 0, docsIssuedTotal: 0, docsIssuedHindi: 0 }, 
+          olicHeld: !!formData.olic_date, 
+          olicDate: formData.olic_date, 
+          subordinateOlicCount: formData.sub_olic_count,
+          subordinateOlicHeldCount: formData.sub_olic_held,
+          subordinateOlicHindiMinutes: formData.sub_olic_hindi,
+          advisoryHeld: false 
+        },
+        section33: { 
+          total: formData.s33_total, 
+          bilingual: formData.s33_bilingual, 
+          englishOnly: formData.s33_english, 
+          hindiOnly: formData.s33_hindi 
+        },
+        rule5: { 
+          totalHindiReceived: formData.r5_received, 
+          repliedHindi: formData.r5_replied_hindi, 
+          repliedEnglish: formData.r5_replied_english, 
+          noReplyNeeded: formData.r5_noreply 
+        },
+        rule5EnglishLetters: { 
+          regionA: { received: formData.r5engA_received, repliedHindi: formData.r5engA_hindi, repliedEnglish: formData.r5engA_eng, noReplyNeeded: formData.r5engA_noreply }, 
+          regionB: { received: formData.r5engB_received, repliedHindi: formData.r5engB_hindi, repliedEnglish: formData.r5engB_eng, noReplyNeeded: formData.r5engB_noreply } 
+        },
+        correspondence: {
+          toRegionA: { hindi: formData.corrA_hindi, english: formData.corrA_eng, total: corrATotal, percentage: corrATotal > 0 ? (formData.corrA_hindi/corrATotal)*100 : 0 },
+          toRegionB: { hindi: formData.corrB_hindi, english: formData.corrB_eng, total: corrBTotal, percentage: corrBTotal > 0 ? (formData.corrB_hindi/corrBTotal)*100 : 0 },
+          toRegionC: { hindi: formData.corrC_hindi, english: formData.corrC_eng, total: corrCTotal, percentage: corrCTotal > 0 ? (formData.corrC_hindi/corrCTotal)*100 : 0 },
+          overallPercentage
+        },
+        noting: { 
+          hindiPages: formData.noting_hindi, 
+          englishPages: formData.noting_eng, 
+          totalNotes: formData.noting_total, 
+          eOfficeHindi: formData.noting_eoffice 
+        },
+        workshops: { 
+          count: formData.ws_count, 
+          officersTrained: formData.ws_officers, 
+          staffTrained: formData.ws_staff 
+        },
+        achievements: formData.achievements,
+        part2: part2Data,
+        timestamp: initialData?.timestamp || new Date().toISOString(),
+        acknowledgementId: initialData?.acknowledgementId || `RAJ-${Date.now().toString().slice(-6)}`,
+        submittedBy: initialData?.submittedBy || currentUser.name,
+        declarationSigned: true
+      };
+
+      // Submit to Netlify Forms via AJAX
+      try {
+        await fetch("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: encode({ 
+            "form-name": "report-form", 
+            ...formData,
+            reportJSON: JSON.stringify(report) // Send full JSON as well
+          })
+        });
+        
+        onSave(report);
+      } catch (error) {
+        console.error("Netlify Form submission error:", error);
+        alert("सबमिशन विफल रहा। कृपया पुनः प्रयास करें।");
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
 
   // Determine if this is the Master's consolidated report.
   const isConsolidated = (initialData?.sectionName || currentUser.sectionName) === 'मास्टर एडमिन' || currentUser.role === 'MASTER';
@@ -320,7 +341,17 @@ const ReportForm: React.FC<ReportFormProps> = ({ onSave, initialData, currentUse
         {currentStatus === 'REJECTED' && <div className="bg-red-500/20 border border-red-400/50 text-red-200 px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2"><XCircle size={16}/> अस्वीकृत</div>}
       </div>
 
-      <form className="bg-gray-50 p-4 md:p-8 rounded-b-3xl shadow-xl border border-gray-200 space-y-8">
+      <form 
+        data-netlify="true" 
+        name="report-form" 
+        method="POST"
+        className="bg-gray-50 p-4 md:p-8 rounded-b-3xl shadow-xl border border-gray-200 space-y-8"
+        onSubmit={(e) => {
+          // We still want to handle the React state, but we also want Netlify to see the POST
+          // For React, we usually use fetch to submit to Netlify
+        }}
+      >
+        <input type="hidden" name="form-name" value="report-form" />
         
         {currentStatus === 'REJECTED' && formData.saoRemarks && (
            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm mb-6 flex items-start gap-3">
