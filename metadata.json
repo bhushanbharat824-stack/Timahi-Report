@@ -1,0 +1,7 @@
+{
+  "name": "राजभाषा - तिमाही रिपोर्ट प्रबंधन",
+  "description": "A comprehensive Official Language Quarterly Report Management System for tracking Hindi implementation, featuring auto-calculations, PDF/Excel generation, and AI-powered email automation.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

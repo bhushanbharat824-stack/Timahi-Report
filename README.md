@@ -1,11 +1,20 @@
-<div align="center">
+# राजभाषा पोर्टल - इंस्टालेशन गाइड (macOS)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+यह ऐप पायथन (Python) और NiceGUI का उपयोग करता है। मैक पर चलाने के लिए नीचे दिए गए चरणों का पालन करें:
 
-  <h1>Built with AI Studio</h2>
+## 1. पहली बार सेटअप (First Time Setup):
+मैक की सुरक्षा नीति के कारण, आपको फाइल को चलाने की अनुमति देनी होगी। टर्मिनल (Terminal) खोलें और ये कमांड टाइप करें:
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+```bash
+cd [फोल्डर का पाथ]
+chmod +x START_APP_MAC.command
+```
+*(आसान तरीका: `chmod +x ` लिखकर फाइल को टर्मिनल में ड्रैग करें और एंटर दबाएं)*
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## 2. ऐप कैसे चलाएं:
+- `START_APP_MAC.command` फाइल पर डबल-क्लिक करें।
+- यह ऑटोमैटिकली सारी लाइब्रेरी इंस्टॉल करेगा और ऐप को आपके डिफॉल्ट ब्राउज़र (Safari/Chrome) में खोल देगा।
 
-</div>
+## 3. सिस्टम आवश्यकताएँ:
+- macOS (Intel or Apple Silicon)
+- Python 3.9 या उससे ऊपर का वर्जन।
