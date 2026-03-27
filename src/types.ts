@@ -20,6 +20,7 @@ export interface User {
   name: string;
   role: UserRole;
   sectionName?: string;
+  email?: string;
 }
 
 export interface ReportPart2 {
@@ -145,6 +146,7 @@ export interface Report {
   
   part2?: ReportPart2; 
 
+  authorUid: string;
   timestamp: string;
   acknowledgementId: string;
   submittedBy: string;

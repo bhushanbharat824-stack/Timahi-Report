@@ -15,17 +15,36 @@ interface ReportFormProps {
 const InputField = ({ label, value, onChange, max, readOnly = false }: { label: string, value: number | string, onChange?: (v: number) => void, max?: number, readOnly?: boolean }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (readOnly || !onChange) return;
-    let val = parseInt(e.target.value);
-    if (isNaN(val)) val = 0;
-    if (max !== undefined && val > max) val = max;
-    onChange(val);
+    const rawValue = e.target.value;
+    
+    // Handle empty input
+    if (rawValue === '') {
+      onChange(0);
+      return;
+    }
+
+    // Parse as integer
+    const val = parseInt(rawValue);
+    if (isNaN(val)) return;
+
+    let finalVal = val;
+    if (max !== undefined && finalVal > max) finalVal = max;
+    if (finalVal < 0) finalVal = 0;
+    
+    onChange(finalVal);
   };
+
+  // Display empty string for 0 in editable fields to improve UX
+  const displayValue = value === 0 && !readOnly ? '' : value;
+
   return (
     <div className="flex flex-col w-full">
       {label && <label className="text-xs font-bold text-gray-600 mb-1.5">{label}</label>}
       <input 
-        type={typeof value === 'number' ? 'number' : 'text'} min="0" max={max}
-        value={value === 0 && !readOnly ? '' : value} 
+        type={typeof value === 'number' ? 'number' : 'text'} 
+        min="0" 
+        max={max}
+        value={displayValue} 
         onChange={handleChange} 
         placeholder="0"
         readOnly={readOnly}
@@ -210,6 +229,7 @@ const ReportForm: React.FC<ReportFormProps> = ({ onSave, initialData, currentUse
       saoRemarks: remarks,
       sectionId: initialData?.sectionId || currentUser.id,
       sectionName: initialData?.sectionName || currentUser.sectionName || 'Admin',
+      authorUid: initialData?.authorUid || currentUser.id,
       officeInfo: { name: 'कार्यालय/अनुभाग', address: '', officerName: '', phone: '', email: '' },
       ministerFiles: { total: 0, hindi: 0 },
       meetings: { 
@@ -269,7 +289,7 @@ const ReportForm: React.FC<ReportFormProps> = ({ onSave, initialData, currentUse
   };
 
   // Determine if this is the Master's consolidated report.
-  const isConsolidated = (initialData?.sectionName || currentUser.sectionName) === 'मास्टर एडमिन';
+  const isConsolidated = (initialData?.sectionName || currentUser.sectionName) === 'मास्टर एडमिन' || currentUser.role === 'MASTER';
   const isQ4 = formData.quarter === Quarter.Q4;
   
   // Validation Check: Detects any English alphabetic characters in Achievements (Only applies if consolidated)
@@ -717,7 +737,7 @@ const ReportForm: React.FC<ReportFormProps> = ({ onSave, initialData, currentUse
                className="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-black py-4 rounded-2xl transition flex items-center justify-center gap-3 shadow-xl disabled:opacity-70 tracking-wide"
              >
                {isSubmitting ? <RefreshCcw className="animate-spin" size={20} /> : <Save size={20} />} 
-               अपडेट करें (Update Record)
+               रिकॉर्ड अपडेट करें (Update Record)
              </button>
           )}
         </div>

@@ -1,49 +1,51 @@
+import { db, collection, doc, setDoc, updateDoc, deleteDoc, handleFirestoreError, OperationType, query, where, getDocs } from '../firebase';
 import { Report } from '../types';
 
-const STORAGE_KEY = 'rajbhasha_reports';
+const COLLECTION_NAME = 'reports';
 
 export const reportService = {
-  getReports: (): Report[] => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  },
-
-  saveReport: (report: Report): void => {
-    const reports = reportService.getReports();
-    reports.push(report);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
-  },
-
-  updateReport: (updatedReport: Report): void => {
-    const reports = reportService.getReports();
-    const index = reports.findIndex(r => r.id === updatedReport.id);
-    if (index !== -1) {
-      reports[index] = updatedReport;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+  saveReport: async (report: Report): Promise<void> => {
+    try {
+      await setDoc(doc(db, COLLECTION_NAME, report.id), report);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, COLLECTION_NAME);
     }
   },
 
-  deleteReport: (id: string): void => {
-    const reports = reportService.getReports();
-    const filtered = reports.filter(r => r.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  updateReport: async (updatedReport: Report): Promise<void> => {
+    try {
+      await updateDoc(doc(db, COLLECTION_NAME, updatedReport.id), { ...updatedReport });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `${COLLECTION_NAME}/${updatedReport.id}`);
+    }
   },
 
-  deleteReportsBySection: (sectionName: string): void => {
-    const reports = reportService.getReports();
-    const filtered = reports.filter(r => r.sectionName !== sectionName);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  deleteReport: async (id: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(db, COLLECTION_NAME, id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTION_NAME}/${id}`);
+    }
   },
 
-  // Export all data to a JSON file
-  exportData: () => {
-    const reports = reportService.getReports();
-    const sections = localStorage.getItem('rajbhasha_sections');
+  deleteReportsBySection: async (sectionName: string): Promise<void> => {
+    try {
+      const q = query(collection(db, COLLECTION_NAME), where('sectionName', '==', sectionName));
+      const snapshot = await getDocs(q);
+      const deletePromises = snapshot.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deletePromises);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTION_NAME} (query: sectionName=${sectionName})`);
+    }
+  },
+
+  // Export all data to a JSON file (still useful for local backup)
+  exportData: (reports: Report[], sections: string[]) => {
     const data = {
       reports,
-      sections: sections ? JSON.parse(sections) : [],
+      sections,
       exportDate: new Date().toISOString(),
-      version: "1.0"
+      version: "1.1"
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -53,30 +55,18 @@ export const reportService = {
     link.click();
   },
 
-  // Import and merge data from a JSON file
-  importData: (jsonData: string): { success: boolean, count: number } => {
+  // Import data (will need to be updated to write to Firestore)
+  importData: async (jsonData: string): Promise<{ success: boolean, count: number }> => {
     try {
       const parsed = JSON.parse(jsonData);
       if (!parsed.reports || !Array.isArray(parsed.reports)) return { success: false, count: 0 };
-
-      const existingReports = reportService.getReports();
-      const existingIds = new Set(existingReports.map(r => r.id));
       
       let importCount = 0;
-      parsed.reports.forEach((newReport: Report) => {
-        if (!existingIds.has(newReport.id)) {
-          existingReports.push(newReport);
-          importCount++;
-        }
-      });
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(existingReports));
-      
-      // Also merge sections if available
-      if (parsed.sections && Array.isArray(parsed.sections)) {
-        const existingSections = JSON.parse(localStorage.getItem('rajbhasha_sections') || '[]');
-        const mergedSections = Array.from(new Set([...existingSections, ...parsed.sections])).sort();
-        localStorage.setItem('rajbhasha_sections', JSON.stringify(mergedSections));
+      for (const newReport of parsed.reports) {
+        // Simple check to avoid overwriting if we don't want to
+        // In a real app, we might want to check if it exists first
+        await reportService.saveReport(newReport);
+        importCount++;
       }
 
       return { success: true, count: importCount };

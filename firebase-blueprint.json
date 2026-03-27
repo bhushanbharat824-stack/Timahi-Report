@@ -1,0 +1,103 @@
+{
+  "entities": {
+    "Report": {
+      "title": "Quarterly Progress Report",
+      "description": "A quarterly progress report for the Rajbhasha portal.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the report." },
+        "sectionName": { "type": "string", "description": "Name of the section submitting the report." },
+        "year": { "type": "string", "description": "Financial year of the report." },
+        "quarter": { "type": "string", "description": "Quarter of the report (Q1, Q2, Q3, Q4)." },
+        "status": { "type": "string", "enum": ["DRAFT", "PENDING_SAO", "APPROVED", "REJECTED"], "description": "Current status of the report." },
+        "submittedBy": { "type": "string", "description": "Name of the person who submitted the report." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Time when the report was created/submitted." },
+        "acknowledgementId": { "type": "string", "description": "Unique acknowledgement ID for the report." },
+        "region": { "type": "string", "description": "Region of the office." },
+        "officeInfo": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "address": { "type": "string" }
+          }
+        },
+        "correspondence": {
+          "type": "object",
+          "properties": {
+            "toRegionA": { "type": "object", "properties": { "total": { "type": "integer" }, "hindi": { "type": "integer" } } },
+            "toRegionB": { "type": "object", "properties": { "total": { "type": "integer" }, "hindi": { "type": "integer" } } },
+            "toRegionC": { "type": "object", "properties": { "total": { "type": "integer" }, "hindi": { "type": "integer" } } },
+            "overallPercentage": { "type": "number" }
+          }
+        },
+        "section33": {
+          "type": "object",
+          "properties": {
+            "total": { "type": "integer" },
+            "bilingual": { "type": "integer" }
+          }
+        },
+        "rule5": {
+          "type": "object",
+          "properties": {
+            "totalHindiReceived": { "type": "integer" },
+            "noReplyNeeded": { "type": "integer" },
+            "repliedHindi": { "type": "integer" },
+            "repliedEnglish": { "type": "integer" }
+          }
+        },
+        "noting": {
+          "type": "object",
+          "properties": {
+            "totalFiles": { "type": "integer" },
+            "hindiPages": { "type": "integer" }
+          }
+        },
+        "workshops": {
+          "type": "object",
+          "properties": {
+            "count": { "type": "integer" },
+            "participants": { "type": "integer" }
+          }
+        },
+        "meetings": {
+          "type": "object",
+          "properties": {
+            "olicHeld": { "type": "boolean" },
+            "date": { "type": "string" }
+          }
+        },
+        "achievements": { "type": "string" },
+        "saoRemarks": { "type": "string" },
+        "part2": {
+          "type": "object",
+          "properties": {
+            "staff": { "type": "object", "properties": { "total": { "type": "integer" }, "proficient": { "type": "integer" } } },
+            "computers": { "type": "object", "properties": { "total": { "type": "integer" }, "unicodeEnabled": { "type": "integer" } } },
+            "library": { "type": "object", "properties": { "totalExpenditure": { "type": "number" }, "hindiExpenditure": { "type": "number" } } }
+          }
+        }
+      },
+      "required": ["id", "sectionName", "year", "quarter", "status"]
+    },
+    "Section": {
+      "title": "Section",
+      "description": "A department or section in the office.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the section." }
+      },
+      "required": ["name"]
+    }
+  },
+  "firestore": {
+    "reports": {
+      "schema": "Report",
+      "description": "Collection of quarterly progress reports."
+    },
+    "sections": {
+      "schema": "Section",
+      "description": "Collection of office sections."
+    }
+  }
+}
