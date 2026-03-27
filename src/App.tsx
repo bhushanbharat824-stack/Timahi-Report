@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
-import Navbar from './components/Navbar';
+import AppNavbar from './components/AppNavbar';
 import Dashboard from './components/Dashboard';
 import ReportForm from './components/ReportForm';
 import ReportList from './components/ReportList';
@@ -348,7 +348,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50 flex flex-col font-['Inter']">
-        <Navbar currentView={currentView} onNavigate={handleNavigate} currentUser={currentUser} />
+        <AppNavbar currentView={currentView} onNavigate={handleNavigate} currentUser={currentUser} />
         
         {/* Role Indicator Bar */}
         <div className="bg-white border-b px-4 py-2 flex items-center justify-between">
